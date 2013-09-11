@@ -1,0 +1,22 @@
+{% extends 'microserver/base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Recipes" %}{% endblock %}
+
+{% block page_header %}
+  {% include "horizon/common/_page_header.html" with title=_("Recipes") %}
+{% endblock page_header %}
+
+{% block microserver_main %}
+{% endblock %}
+
+{% block main %}
+	<h3>Recipes included in SotolitoLabs Microserver</h3>
+	<div class="microserver-action">
+		<span class="microserver-section">New</span>
+		<ul>
+			<li>Blog</li>
+			<li>Mail Server</li>
+			<li>Wiki</li>
+		</ul>
+	</div>
+{% endblock %}
