@@ -12,11 +12,10 @@
 {% block main %}
 	<h3>Recipes included in SotolitoLabs Microserver</h3>
 	<div class="microserver-action">
-		<span class="microserver-section">New</span>
 		<ul>
-			<li>Blog</li>
-			<li>Mail Server</li>
-			<li>Wiki</li>
-		</ul>
+		{% for recipe_type in recipe_types %}	
+			<li>{{ recipe_type }}</li>
+		{% endfor %}
+		</ul>	
 	</div>
 {% endblock %}
