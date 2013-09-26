@@ -6,8 +6,8 @@ import horizon
 class Microserver(horizon.Dashboard):
     name = _("Microserver")
     slug = "microserver"
-    panels = ('recipes', 'configuration', 'logs','users',)  # Add your panels here.
-    default_panel = 'recipes'  # Specify the slug of the dashboard's default panel.
+    panels = ('hypervisors','recipes', 'configuration', 'logs','users',)  # Add your panels here.
+    default_panel = 'hypervisors'  # Specify the slug of the dashboard's default panel.
 
 
 horizon.register(Microserver)
