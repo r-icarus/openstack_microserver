@@ -89,6 +89,25 @@ class IPField(forms.Field):
         return str(getattr(self, "ip", ""))
 
 
+class MultiIPField(IPField):
+    """
+    Extends IPField to allow comma-separated lists of addresses
+    """
+    def validate(self, value):
+        self.addresses = []
+        if value:
+            addresses = value.split(',')
+            for ip in addresses:
+                super(MultiIPField, self).validate(ip)
+                self.addresses.append(ip)
+        else:
+            super(MultiIPField, self).validate(value)
+
+    def clean(self, value):
+        super(MultiIPField, self).clean(value)
+        return str(','.join(getattr(self, "addresses", [])))
+
+
 class SelectWidget(widgets.Select):
     """
     Customizable select widget, that allows to render
@@ -119,12 +138,12 @@ class SelectWidget(widgets.Select):
         if not isinstance(option_label, (basestring, Promise)):
             for data_attr in self.data_attrs:
                 data_value = conditional_escape(
-                                    force_unicode(getattr(option_label,
-                                                          data_attr, "")))
+                    force_unicode(getattr(option_label,
+                                          data_attr, "")))
                 other_html += ' data-%s="%s"' % (data_attr, data_value)
 
             if self.transform:
                 option_label = self.transform(option_label)
         return u'<option value="%s"%s>%s</option>' % (
-                escape(option_value), other_html,
-                conditional_escape(force_unicode(option_label)))
+            escape(option_value), other_html,
+            conditional_escape(force_unicode(option_label)))

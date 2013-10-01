@@ -159,6 +159,7 @@ def data(TEST):
     TEST.volumes = utils.TestDataContainer()
     TEST.quotas = utils.TestDataContainer()
     TEST.quota_usages = utils.TestDataContainer()
+    TEST.disabled_quotas = utils.TestDataContainer()
     TEST.floating_ips = utils.TestDataContainer()
     TEST.floating_ips_uuid = utils.TestDataContainer()
     TEST.usages = utils.TestDataContainer()
@@ -362,6 +363,11 @@ def data(TEST):
     TEST.quotas.nova = base.QuotaSet(quota)
     TEST.quotas.add(base.QuotaSet(quota))
 
+    # nova quotas disabled when neutron is enabled
+    disabled_quotas_nova = ['floating_ips', 'fixed_ips',
+                            'security_groups', 'security_group_rules']
+    TEST.disabled_quotas.add(disabled_quotas_nova)
+
     # Quota Usages
     quota_usage_data = {'gigabytes': {'used': 0,
                                       'quota': 1000},
@@ -501,7 +507,15 @@ def data(TEST):
                          'size': 40,
                          'status': 'available',
                          'volume_id': '41023e92-8008-4c8b-8059-7f2293ff3775'})
+    volume_snapshot2 = vol_snaps.Snapshot(vol_snaps.SnapshotManager(None),
+                        {'id': 'a374cbb8-3f99-4c3f-a2ef-3edbec842e31',
+                         'display_name': '',
+                         'display_description': 'vol snap 2!',
+                         'size': 80,
+                         'status': 'available',
+                         'volume_id': '3b189ac8-9166-ac7f-90c9-16c8bf9e01ac'})
     TEST.volume_snapshots.add(volume_snapshot)
+    TEST.volume_snapshots.add(volume_snapshot2)
 
     cert_data = {'private_key': 'private',
                  'data': 'certificate_data'}

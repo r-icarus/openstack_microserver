@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 # Copyright 2012 Nebula, Inc.
-# Copyright 2012 OpenStack LLC
+# Copyright 2012 OpenStack Foundation
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -23,8 +23,7 @@
 Views for managing Images and Snapshots.
 """
 
-import logging
-
+from django.core.urlresolvers import reverse  # noqa
 from django.utils.translation import ugettext_lazy as _  # noqa
 
 from horizon import exceptions
@@ -40,8 +39,6 @@ from openstack_dashboard.dashboards.project.images_and_snapshots.\
     volume_snapshots import tables as vol_snsh_tables
 from openstack_dashboard.dashboards.project.images_and_snapshots.\
     volume_snapshots import tabs as vol_snsh_tabs
-
-LOG = logging.getLogger(__name__)
 
 
 class IndexView(tables.MultiTableView):
@@ -72,10 +69,18 @@ class IndexView(tables.MultiTableView):
         if base.is_service_enabled(self.request, 'volume'):
             try:
                 snapshots = api.cinder.volume_snapshot_list(self.request)
+                volumes = api.cinder.volume_list(self.request)
+                volumes = dict((v.id, v) for v in volumes)
             except Exception:
                 snapshots = []
+                volumes = {}
                 exceptions.handle(self.request, _("Unable to retrieve "
                                                   "volume snapshots."))
+
+            for snapshot in snapshots:
+                volume = volumes.get(snapshot.volume_id)
+                setattr(snapshot, '_volume', volume)
+
         else:
             snapshots = []
         return snapshots
@@ -84,3 +89,26 @@ class IndexView(tables.MultiTableView):
 class DetailView(tabs.TabView):
     tab_group_class = vol_snsh_tabs.SnapshotDetailTabs
     template_name = 'project/images_and_snapshots/snapshots/detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(DetailView, self).get_context_data(**kwargs)
+        context["snapshot"] = self.get_data()
+        return context
+
+    def get_data(self):
+        if not hasattr(self, "_snapshot"):
+            try:
+                snapshot_id = self.kwargs['snapshot_id']
+                self._snapshot = api.cinder.volume_snapshot_get(self.request,
+                                                          snapshot_id)
+            except Exception:
+                url = reverse('horizon:project:images_and_snapshots:index')
+                exceptions.handle(self.request,
+                                  _('Unable to retrieve snapshot details.'),
+                                  redirect=url)
+
+        return self._snapshot
+
+    def get_tabs(self, request, *args, **kwargs):
+        snapshot = self.get_data()
+        return self.tab_group_class(request, snapshot=snapshot, **kwargs)

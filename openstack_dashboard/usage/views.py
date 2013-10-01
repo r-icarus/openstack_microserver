@@ -1,10 +1,6 @@
-import logging
-
 from horizon import tables
+from openstack_dashboard import api
 from openstack_dashboard.usage import base
-
-
-LOG = logging.getLogger(__name__)
 
 
 class UsageView(tables.DataTableView):
@@ -40,6 +36,8 @@ class UsageView(tables.DataTableView):
         context['table'].kwargs['usage'] = self.usage
         context['form'] = self.usage.form
         context['usage'] = self.usage
+        context['simple_tenant_usage_enabled'] = \
+            api.nova.extension_supported('SimpleTenantUsage', self.request)
         return context
 
     def render_to_response(self, context, **response_kwargs):

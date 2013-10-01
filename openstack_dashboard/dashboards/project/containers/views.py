@@ -234,7 +234,8 @@ class ContainerDetailView(forms.ModalFormMixin, generic.TemplateView):
             try:
                 self._object = api.swift.swift_get_container(
                     self.request,
-                    self.kwargs["container_name"])
+                    self.kwargs["container_name"],
+                    with_data=False)
             except Exception:
                 redirect = reverse("horizon:project:containers:index")
                 exceptions.handle(self.request,
@@ -257,7 +258,8 @@ class ObjectDetailView(forms.ModalFormMixin, generic.TemplateView):
                 self._object = api.swift.swift_get_object(
                     self.request,
                     self.kwargs["container_name"],
-                    self.kwargs["object_path"])
+                    self.kwargs["object_path"],
+                    with_data=False)
             except Exception:
                 redirect = reverse("horizon:project:containers:index")
                 exceptions.handle(self.request,

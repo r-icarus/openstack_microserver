@@ -18,6 +18,7 @@
 Views for managing volumes.
 """
 
+from django.core.urlresolvers import reverse  # noqa
 from django.core.urlresolvers import reverse_lazy  # noqa
 from django.utils.datastructures import SortedDict  # noqa
 from django.utils.translation import ugettext_lazy as _  # noqa
@@ -26,8 +27,6 @@ from horizon import exceptions
 from horizon import forms
 from horizon import tables
 from horizon import tabs
-
-import logging
 
 from openstack_dashboard import api
 from openstack_dashboard.api import cinder
@@ -40,9 +39,6 @@ from openstack_dashboard.dashboards.project.volumes \
     import tables as project_tables
 from openstack_dashboard.dashboards.project.volumes \
     import tabs as project_tabs
-
-
-LOG = logging.getLogger(__name__)
 
 
 class VolumeTableMixIn(object):
@@ -96,6 +92,31 @@ class DetailView(tabs.TabView):
     tab_group_class = project_tabs.VolumeDetailTabs
     template_name = 'project/volumes/detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(DetailView, self).get_context_data(**kwargs)
+        context["volume"] = self.get_data()
+        return context
+
+    def get_data(self):
+        if not hasattr(self, "_volume"):
+            try:
+                volume_id = self.kwargs['volume_id']
+                self._volume = cinder.volume_get(self.request, volume_id)
+                for att in self._volume.attachments:
+                    att['instance'] = api.nova.server_get(self.request,
+                                                          att['server_id'])
+            except Exception:
+                redirect = reverse('horizon:project:volumes:index')
+                exceptions.handle(self.request,
+                                  _('Unable to retrieve volume details.'),
+                                  redirect=redirect)
+
+        return self._volume
+
+    def get_tabs(self, request, *args, **kwargs):
+        volume = self.get_data()
+        return self.tab_group_class(request, volume=volume, **kwargs)
+
 
 class CreateView(forms.ModalFormView):
     form_class = project_forms.CreateForm
@@ -105,13 +126,7 @@ class CreateView(forms.ModalFormView):
     def get_context_data(self, **kwargs):
         context = super(CreateView, self).get_context_data(**kwargs)
         try:
-            context['usages'] = cinder.tenant_absolute_limits(self.request)
-            volumes = cinder.volume_list(self.request)
-            total_size = sum([getattr(volume, 'size', 0) for volume
-                              in volumes])
-            context['usages']['gigabytesUsed'] = total_size
-            context['usages']['volumesUsed'] = len(volumes)
-
+            context['usages'] = quotas.tenant_limit_usages(self.request)
         except Exception:
             exceptions.handle(self.request)
         return context
@@ -126,7 +141,7 @@ class CreateSnapshotView(forms.ModalFormView):
         context = super(CreateSnapshotView, self).get_context_data(**kwargs)
         context['volume_id'] = self.kwargs['volume_id']
         try:
-            context['usages'] = quotas.tenant_quota_usages(self.request)
+            context['usages'] = quotas.tenant_limit_usages(self.request)
         except Exception:
             exceptions.handle(self.request)
         return context

@@ -585,7 +585,7 @@ class Cell(html.HTMLElement):
             link_classes = ' '.join(self.column.link_classes)
             # Escape the data inside while allowing our HTML to render
             data = mark_safe('<a href="%s" class="%s">%s</a>' %
-                             (self.url, link_classes, escape(data)))
+                             (self.url, link_classes, escape(unicode(data))))
         return data
 
     @property
@@ -778,7 +778,9 @@ class DataTableOptions(object):
         else:
             self._filter_action = None
 
-        self.template = 'horizon/common/_data_table.html'
+        self.template = getattr(options,
+                                'template',
+                                'horizon/common/_data_table.html')
         self.row_actions_template = \
                         'horizon/common/_data_table_row_actions.html'
         self.table_actions_template = \

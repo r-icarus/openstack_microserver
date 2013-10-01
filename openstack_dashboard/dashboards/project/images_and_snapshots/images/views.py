@@ -21,9 +21,6 @@
 """
 Views for managing images.
 """
-
-import logging
-
 from django.core.urlresolvers import reverse  # noqa
 from django.core.urlresolvers import reverse_lazy  # noqa
 from django.utils.translation import ugettext_lazy as _  # noqa
@@ -38,9 +35,6 @@ from openstack_dashboard.dashboards.project.images_and_snapshots.images \
     import forms as project_forms
 from openstack_dashboard.dashboards.project.images_and_snapshots.images \
     import tabs as project_tabs
-
-
-LOG = logging.getLogger(__name__)
 
 
 class CreateView(forms.ModalFormView):
@@ -73,17 +67,40 @@ class UpdateView(forms.ModalFormView):
 
     def get_initial(self):
         image = self.get_object()
+        properties = getattr(image, 'properties', {})
         return {'image_id': self.kwargs['image_id'],
-                'name': image.name,
-                'description': image.properties.get('description', ''),
-                'kernel': image.properties.get('kernel_id', ''),
-                'ramdisk': image.properties.get('ramdisk_id', ''),
-                'architecture': image.properties.get('architecture', ''),
-                'disk_format': image.disk_format,
-                'public': image.is_public,
-                'protected': image.protected}
+                'name': getattr(image, 'name', None) or image.id,
+                'description': properties.get('description', ''),
+                'kernel': properties.get('kernel_id', ''),
+                'ramdisk': properties.get('ramdisk_id', ''),
+                'architecture': properties.get('architecture', ''),
+                'disk_format': getattr(image, 'disk_format', None),
+                'public': getattr(image, 'is_public', None),
+                'protected': getattr(image, 'protected', None)}
 
 
 class DetailView(tabs.TabView):
     tab_group_class = project_tabs.ImageDetailTabs
     template_name = 'project/images_and_snapshots/images/detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(DetailView, self).get_context_data(**kwargs)
+        context["image"] = self.get_data()
+        return context
+
+    def get_data(self):
+        if not hasattr(self, "_image"):
+            try:
+                image_id = self.kwargs['image_id']
+                self._image = api.glance.image_get(self.request, image_id)
+            except Exception:
+                url = reverse('horizon:project:images_and_snapshots:index')
+                exceptions.handle(self.request,
+                                  _('Unable to retrieve image details.'),
+                                  redirect=url)
+
+        return self._image
+
+    def get_tabs(self, request, *args, **kwargs):
+        image = self.get_data()
+        return self.tab_group_class(request, image=image, **kwargs)

@@ -16,8 +16,6 @@
 #
 # @author: Tatiana Mazur
 
-import logging
-
 from django.utils.translation import ugettext_lazy as _  # noqa
 
 from horizon import exceptions
@@ -26,9 +24,6 @@ from horizon.utils import fields
 from horizon import workflows
 
 from openstack_dashboard import api
-
-
-LOG = logging.getLogger(__name__)
 
 
 class AddVPNServiceAction(workflows.Action):
@@ -320,15 +315,16 @@ class AddIPSecSiteConnectionAction(workflows.Action):
         label=_("IKE Policy associated with this connection"))
     ipsecpolicy_id = forms.ChoiceField(
         label=_("IPSec Policy associated with this connection"))
-    peer_address = fields.IPField(label=_("Remote Peer IP Address"),
-                                  help_text=_("Remote peer IP address for "
-                                              "the VPN Connection "
-                                              "(e.g. 172.0.0.2)"),
-                                  version=fields.IPv4 | fields.IPv6,
-                                  mask=False)
+    peer_address = fields.IPField(
+        label=_("Peer gateway public IPv4/IPv6 Address or FQDN"),
+        help_text=_("Peer gateway public IPv4/IPv6 address or FQDN for "
+                    "the VPN Connection"),
+        version=fields.IPv4 | fields.IPv6,
+        mask=False)
     peer_id = fields.IPField(
-        label=_("Remote branch router identity (Peer ID)"),
-        help_text=_("IP address of remote branch router (e.g. 172.0.0.2)"),
+        label=_("Peer router identity for authentication (Peer ID)"),
+        help_text=_("Peer router identity for authentication. "
+                    "Can be IPv4/IPv6 address, e-mail, key ID, or FQDN"),
         version=fields.IPv4 | fields.IPv6,
         mask=False)
     peer_cidrs = fields.IPField(label=_("Remote peer subnet"),

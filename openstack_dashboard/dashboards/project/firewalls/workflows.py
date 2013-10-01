@@ -15,9 +15,7 @@
 #
 # @author: KC Wang, Big Switch Networks
 
-import logging
-
-from django.utils.translation import ugettext as _  # noqa
+from django.utils.translation import ugettext_lazy as _  # noqa
 
 from horizon import exceptions
 from horizon import forms
@@ -28,8 +26,6 @@ from horizon import workflows
 from openstack_dashboard import api
 
 port_validator = validators.validate_port_or_colon_separated_port_range
-
-LOG = logging.getLogger(__name__)
 
 
 class AddRuleAction(workflows.Action):
@@ -46,7 +42,7 @@ class AddRuleAction(workflows.Action):
         choices=[('tcp', _('TCP')),
                  ('udp', _('UDP')),
                  ('icmp', _('ICMP')),
-                 (None, _('ANY'))],)
+                 ('any', _('ANY'))],)
     action = forms.ChoiceField(
         label=_("Action"),
         choices=[('allow', _('ALLOW')),
@@ -95,6 +91,8 @@ class AddRuleStep(workflows.Step):
     def contribute(self, data, context):
         context = super(AddRuleStep, self).contribute(data, context)
         if data:
+            if context['protocol'] == 'any':
+                del context['protocol']
             for field in ['source_port',
                           'destination_port',
                           'source_ip_address',
@@ -157,7 +155,8 @@ class SelectRulesAction(workflows.Action):
         except Exception as e:
             rule_list = []
             exceptions.handle(request,
-                              _('Unable to retrieve rules.') + str(e))
+                              _('Unable to retrieve rules (%(error)s).') % {
+                                  'error': str(e)})
         return rule_list
 
 
@@ -168,7 +167,7 @@ class SelectRulesStep(workflows.Step):
 
     def contribute(self, data, context):
         if data:
-            rules = self.workflow.request.POST.getlist("firewall_rules")
+            rules = self.workflow.request.POST.getlist("rule")
             if rules:
                 rules = [r for r in rules if r != '']
                 context['firewall_rules'] = rules
@@ -195,7 +194,7 @@ class AddPolicyAction(workflows.Action):
     class Meta:
         name = _("AddPolicy")
         permissions = ('openstack.services.network',)
-        help_text = _("Create a firewall policy with an ordered list"
+        help_text = _("Create a firewall policy with an ordered list "
                       "of firewall rules.\n\n"
                       "A name must be given. Firewall rules are "
                       "added in the order placed under the Rules tab.")
@@ -258,8 +257,10 @@ class AddFirewallAction(workflows.Action):
             policies = api.fwaas.policies_list(request, tenant_id=tenant_id)
             policies = sorted(policies, key=lambda policy: policy.name)
         except Exception as e:
-            exceptions.handle(request,
-                              _('Unable to retrieve policy list.') + str(e))
+            exceptions.handle(
+                request,
+                _('Unable to retrieve policy list (%(error)s).') % {
+                    'error': str(e)})
             policies = []
         for p in policies:
             p.set_id_as_name_if_empty()

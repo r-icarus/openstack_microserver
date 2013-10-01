@@ -136,12 +136,12 @@ def vpnservice_create(request, **kwargs):
     :param router_id: router id for router of VPNService
     :param subnet_id: subnet id for subnet of VPNService
     """
-    body = {'vpnservice': {
-                    'admin_state_up': kwargs['admin_state_up'],
-                    'name': kwargs['name'],
-                    'description': kwargs['description'],
-                    'router_id': kwargs['router_id'],
-                    'subnet_id': kwargs['subnet_id']}
+    body = {'vpnservice':
+                {'admin_state_up': kwargs['admin_state_up'],
+                 'name': kwargs['name'],
+                 'description': kwargs['description'],
+                 'router_id': kwargs['router_id'],
+                 'subnet_id': kwargs['subnet_id']}
             }
     vpnservice = neutronclient(request).create_vpnservice(body).get(
         'vpnservice')
@@ -149,7 +149,8 @@ def vpnservice_create(request, **kwargs):
 
 
 def vpnservices_get(request, **kwargs):
-    vpnservices = neutronclient(request).list_vpnservices().get('vpnservices')
+    vpnservices = neutronclient(request).list_vpnservices(
+        **kwargs).get('vpnservices')
     return [VPNService(v) for v in vpnservices]
 
 
@@ -182,17 +183,15 @@ def ikepolicy_create(request, **kwargs):
     :param pfs: Perfect Forward Secrecy for IKEPolicy
     :param phase1_negotiation_mode: IKE Phase1 negotiation mode for IKEPolicy
     """
-    body = {'ikepolicy': {
-                    'name': kwargs['name'],
-                    'description': kwargs['description'],
-                    'auth_algorithm': kwargs['auth_algorithm'],
-                    'encryption_algorithm': kwargs[
-                        'encryption_algorithm'],
-                    'ike_version': kwargs['ike_version'],
-                    'lifetime': kwargs['lifetime'],
-                    'pfs': kwargs['pfs'],
-                    'phase1_negotiation_mode': kwargs[
-                        'phase1_negotiation_mode']}
+    body = {'ikepolicy':
+                {'name': kwargs['name'],
+                 'description': kwargs['description'],
+                 'auth_algorithm': kwargs['auth_algorithm'],
+                 'encryption_algorithm': kwargs['encryption_algorithm'],
+                 'ike_version': kwargs['ike_version'],
+                 'lifetime': kwargs['lifetime'],
+                 'pfs': kwargs['pfs'],
+                 'phase1_negotiation_mode': kwargs['phase1_negotiation_mode']}
             }
     ikepolicy = neutronclient(request).create_ikepolicy(body).get(
         'ikepolicy')
@@ -200,7 +199,8 @@ def ikepolicy_create(request, **kwargs):
 
 
 def ikepolicies_get(request, **kwargs):
-    ikepolicies = neutronclient(request).list_ikepolicies().get('ikepolicies')
+    ikepolicies = neutronclient(request).list_ikepolicies(
+        **kwargs).get('ikepolicies')
     return [IKEPolicy(v) for v in ikepolicies]
 
 
@@ -233,15 +233,15 @@ def ipsecpolicy_create(request, **kwargs):
     :param pfs: Perfect Forward Secrecy for IPSecPolicy
     :param transform_protocol: Transform Protocol for IPSecPolicy
     """
-    body = {'ipsecpolicy': {
-                    'name': kwargs['name'],
-                    'description': kwargs['description'],
-                    'auth_algorithm': kwargs['auth_algorithm'],
-                    'encapsulation_mode': kwargs['encapsulation_mode'],
-                    'encryption_algorithm': kwargs['encryption_algorithm'],
-                    'lifetime': kwargs['lifetime'],
-                    'pfs': kwargs['pfs'],
-                    'transform_protocol': kwargs['transform_protocol']}
+    body = {'ipsecpolicy':
+                {'name': kwargs['name'],
+                 'description': kwargs['description'],
+                 'auth_algorithm': kwargs['auth_algorithm'],
+                 'encapsulation_mode': kwargs['encapsulation_mode'],
+                 'encryption_algorithm': kwargs['encryption_algorithm'],
+                 'lifetime': kwargs['lifetime'],
+                 'pfs': kwargs['pfs'],
+                 'transform_protocol': kwargs['transform_protocol']}
             }
     ipsecpolicy = neutronclient(request).create_ipsecpolicy(body).get(
         'ipsecpolicy')
@@ -249,8 +249,8 @@ def ipsecpolicy_create(request, **kwargs):
 
 
 def ipsecpolicies_get(request, **kwargs):
-    ipsecpolicies = neutronclient(request).list_ipsecpolicies().get(
-        'ipsecpolicies')
+    ipsecpolicies = neutronclient(request).list_ipsecpolicies(
+        **kwargs).get('ipsecpolicies')
     return [IPSecPolicy(v) for v in ipsecpolicies]
 
 
@@ -281,27 +281,27 @@ def ipsecsiteconnection_create(request, **kwargs):
     :param initiator: initiator state
     :param ipsecpolicy_id: IPsecPolicy associated with this connection
     :param mtu: MTU size for the connection
-    :param peer_address: remote branch router public
+    :param peer_address: Peer gateway public address
     :param peer_cidrs: remote subnet(s) in CIDR format
-    :param peer_id: remote branch router identity"
+    :param peer_id:  Peer router identity for authentication"
     :param psk: Pre-Shared Key string
     :param vpnservice_id: VPNService associated with this connection
     :param admin_state_up: admin state (default on)
     """
-    body = {'ipsec_site_connection': {
-                    'name': kwargs['name'],
-                    'description': kwargs['description'],
-                    'dpd': kwargs['dpd'],
-                    'ikepolicy_id': kwargs['ikepolicy_id'],
-                    'initiator': kwargs['initiator'],
-                    'ipsecpolicy_id': kwargs['ipsecpolicy_id'],
-                    'mtu': kwargs['mtu'],
-                    'peer_address': kwargs['peer_address'],
-                    'peer_cidrs': kwargs['peer_cidrs'],
-                    'peer_id': kwargs['peer_id'],
-                    'psk': kwargs['psk'],
-                    'vpnservice_id': kwargs['vpnservice_id'],
-                    'admin_state_up': kwargs['admin_state_up']}
+    body = {'ipsec_site_connection':
+                {'name': kwargs['name'],
+                 'description': kwargs['description'],
+                 'dpd': kwargs['dpd'],
+                 'ikepolicy_id': kwargs['ikepolicy_id'],
+                 'initiator': kwargs['initiator'],
+                 'ipsecpolicy_id': kwargs['ipsecpolicy_id'],
+                 'mtu': kwargs['mtu'],
+                 'peer_address': kwargs['peer_address'],
+                 'peer_cidrs': kwargs['peer_cidrs'],
+                 'peer_id': kwargs['peer_id'],
+                 'psk': kwargs['psk'],
+                 'vpnservice_id': kwargs['vpnservice_id'],
+                 'admin_state_up': kwargs['admin_state_up']}
             }
     ipsecsiteconnection = neutronclient(request).create_ipsec_site_connection(
         body).get('ipsec_site_connection')
@@ -309,8 +309,8 @@ def ipsecsiteconnection_create(request, **kwargs):
 
 
 def ipsecsiteconnections_get(request, **kwargs):
-    ipsecsiteconnections = neutronclient(
-        request).list_ipsec_site_connections().get('ipsec_site_connections')
+    ipsecsiteconnections = neutronclient(request).list_ipsec_site_connections(
+        **kwargs).get('ipsec_site_connections')
     return [IPSecSiteConnection(v) for v in ipsecsiteconnections]
 
 

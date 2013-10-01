@@ -18,8 +18,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
-
 from django.core.urlresolvers import reverse_lazy  # noqa
 from django.utils.translation import ugettext_lazy as _  # noqa
 
@@ -34,8 +32,6 @@ from openstack_dashboard.dashboards.admin.flavors \
 from openstack_dashboard.dashboards.admin.flavors \
     import workflows as flavor_workflows
 
-
-LOG = logging.getLogger(__name__)
 
 INDEX_URL = "horizon:admin:flavors:index"
 
@@ -75,7 +71,7 @@ class UpdateView(workflows.WorkflowView):
             flavor = api.nova.flavor_get(self.request, flavor_id)
         except Exception:
             exceptions.handle(self.request,
-                              _('Unable to retrieve flavor data.'),
+                              _('Unable to retrieve flavor details.'),
                               redirect=reverse_lazy(INDEX_URL))
         return {'flavor_id': flavor.id,
                 'name': flavor.name,

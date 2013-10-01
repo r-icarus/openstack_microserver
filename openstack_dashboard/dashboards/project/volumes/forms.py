@@ -25,6 +25,7 @@ from openstack_dashboard.api import cinder
 from openstack_dashboard.api import glance
 from openstack_dashboard.dashboards.project.images_and_snapshots import utils
 from openstack_dashboard.dashboards.project.instances import tables
+from openstack_dashboard.usage import quotas
 
 
 class CreateForm(forms.SelfHandlingForm):
@@ -41,20 +42,17 @@ class CreateForm(forms.SelfHandlingForm):
         widget=fields.SelectWidget(
             attrs={'class': 'snapshot-selector'},
             data_attrs=('size', 'display_name'),
-            transform=lambda x:
-                ("%s (%sGB)" % (x.display_name,
-                                x.size))),
+            transform=lambda x: "%s (%sGB)" % (x.display_name, x.size)),
         required=False)
     image_source = forms.ChoiceField(
         label=_("Use image as a source"),
         widget=fields.SelectWidget(
             attrs={'class': 'image-selector'},
             data_attrs=('size', 'name'),
-            transform=lambda x:
-                ("%s (%s)" %
-                    (x.name,
-                     filesizeformat(x.bytes)))),
+            transform=lambda x: "%s (%s)" % (x.name, filesizeformat(x.bytes))),
         required=False)
+    availability_zone = forms.ChoiceField(label=_("Availability Zone"),
+                                          required=False)
 
     def __init__(self, request, *args, **kwargs):
         super(CreateForm, self).__init__(request, *args, **kwargs)
@@ -62,6 +60,8 @@ class CreateForm(forms.SelfHandlingForm):
         self.fields['type'].choices = [("", "")] + \
                                       [(type.name, type.name)
                                        for type in volume_types]
+        self.fields['availability_zone'].choices = \
+            self.availability_zones(request)
 
         if ("snapshot_id" in request.GET):
             try:
@@ -141,15 +141,38 @@ class CreateForm(forms.SelfHandlingForm):
             else:
                 del self.fields['volume_source_type']
 
+    # Determine whether the extension for Cinder AZs is enabled
+    def cinder_az_supported(self, request):
+        try:
+            return cinder.extension_supported(request, 'AvailabilityZones')
+        except Exception:
+            exceptions.handle(request, _('Unable to determine if '
+                                         'availability zones extension '
+                                         'is supported.'))
+            return False
+
+    def availability_zones(self, request):
+        zone_list = []
+        if self.cinder_az_supported(request):
+            try:
+                zones = api.cinder.availability_zone_list(request)
+                zone_list = [(zone.zoneName, zone.zoneName)
+                              for zone in zones if zone.zoneState['available']]
+                zone_list.sort()
+            except Exception:
+                exceptions.handle(request, _('Unable to retrieve availability '
+                                             'zones.'))
+        if not zone_list:
+            zone_list.insert(0, ("", _("No availability zones found.")))
+        elif len(zone_list) > 0:
+            zone_list.insert(0, ("", _("Any Availability Zone")))
+
+        return zone_list
+
     def handle(self, request, data):
         try:
-            usages = cinder.tenant_absolute_limits(self.request)
-            volumes = cinder.volume_list(self.request)
-            total_size = sum([getattr(volume, 'size', 0) for volume
-                              in volumes])
-            usages['gigabytesUsed'] = total_size
-            usages['volumesUsed'] = len(volumes)
-            availableGB = usages['maxTotalVolumeGigabytes'] -\
+            usages = quotas.tenant_limit_usages(self.request)
+            availableGB = usages['maxTotalVolumeGigabytes'] - \
                 usages['gigabytesUsed']
             availableVol = usages['maxTotalVolumes'] - usages['volumesUsed']
 
@@ -197,6 +220,8 @@ class CreateForm(forms.SelfHandlingForm):
 
             metadata = {}
 
+            az = data['availability_zone'] or None
+
             volume = cinder.volume_create(request,
                                           data['size'],
                                           data['name'],
@@ -204,7 +229,8 @@ class CreateForm(forms.SelfHandlingForm):
                                           data['type'],
                                           snapshot_id=snapshot_id,
                                           image_id=image_id,
-                                          metadata=metadata)
+                                          metadata=metadata,
+                                          availability_zone=az)
             message = _('Creating volume "%s"') % data['name']
             messages.info(request, message)
             return volume
@@ -258,8 +284,8 @@ class AttachForm(forms.SelfHandlingForm):
         instances = []
         for instance in instance_list:
             if instance.status in tables.ACTIVE_STATES and \
-                        not any(instance.id == att["server_id"]
-                                for att in volume.attachments):
+                    not any(instance.id == att["server_id"]
+                            for att in volume.attachments):
                 instances.append((instance.id, '%s (%s)' % (instance.name,
                                                             instance.id)))
         if instances:

@@ -20,10 +20,9 @@
 from django.utils.translation import ugettext_lazy as _  # noqa
 
 from horizon import exceptions
+from horizon import messages
 from horizon import tabs
 from horizon import workflows
-
-import logging
 
 from openstack_dashboard import api
 
@@ -32,8 +31,6 @@ from openstack_dashboard.dashboards.project.vpn import \
     workflows as vpn_workflow
 
 import re
-
-LOG = logging.getLogger(__name__)
 
 
 class IndexView(tabs.TabbedTableView):
@@ -50,6 +47,8 @@ class IndexView(tabs.TabbedTableView):
             for obj_id in obj_ids:
                 try:
                     api.vpn.vpnservice_delete(request, obj_id)
+                    messages.success(request,
+                                     _('Deleted VPN Service %s' % obj_id))
                 except Exception:
                     exceptions.handle(request,
                                       _('Unable to delete VPN Service.'))
@@ -57,6 +56,8 @@ class IndexView(tabs.TabbedTableView):
             for obj_id in obj_ids:
                 try:
                     api.vpn.ikepolicy_delete(request, obj_id)
+                    messages.success(request,
+                                     _('Deleted IKE Policy %s' % obj_id))
                 except Exception:
                     exceptions.handle(request,
                                       _('Unable to delete IKE Policy.'))
@@ -64,6 +65,8 @@ class IndexView(tabs.TabbedTableView):
             for obj_id in obj_ids:
                 try:
                     api.vpn.ipsecpolicy_delete(request, obj_id)
+                    messages.success(request,
+                                     _('Deleted IPSec Policy %s' % obj_id))
                 except Exception:
                     exceptions.handle(request,
                                       _('Unable to delete IPSec Policy.'))
@@ -71,6 +74,9 @@ class IndexView(tabs.TabbedTableView):
             for obj_id in obj_ids:
                 try:
                     api.vpn.ipsecsiteconnection_delete(request, obj_id)
+                    messages.success(request,
+                                     _('Deleted IPSec Site Connection %s'
+                                     % obj_id))
                 except Exception:
                     exceptions.handle(request,
                         _('Unable to delete IPSec Site Connection.'))

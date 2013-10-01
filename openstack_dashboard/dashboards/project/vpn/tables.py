@@ -17,16 +17,11 @@
 # @author: Tatiana Mazur
 
 
-import logging
-
 from django.template.defaultfilters import title  # noqa
 from django.utils.translation import ugettext_lazy as _  # noqa
 
 from horizon import tables
 from horizon.utils import filters
-
-
-LOG = logging.getLogger(__name__)
 
 
 class AddIKEPolicyLink(tables.LinkAction):
@@ -150,8 +145,8 @@ class IKEPoliciesTable(tables.DataTable):
     auth_algorithm = tables.Column('auth_algorithm',
                                    verbose_name=_('Authorization algorithm'))
     encryption_algorithm = tables.Column(
-                                'encryption_algorithm',
-                                verbose_name=_('Encryption algorithm'))
+        'encryption_algorithm',
+        verbose_name=_('Encryption algorithm'))
     pfs = tables.Column("pfs", verbose_name=_('PFS'))
 
     class Meta:
@@ -168,8 +163,8 @@ class IPSecPoliciesTable(tables.DataTable):
     auth_algorithm = tables.Column('auth_algorithm',
                                    verbose_name=_('Authorization algorithm'))
     encryption_algorithm = tables.Column(
-                                'encryption_algorithm',
-                                verbose_name=_('Encryption algorithm'))
+        'encryption_algorithm',
+        verbose_name=_('Encryption algorithm'))
     pfs = tables.Column("pfs", verbose_name=_('PFS'))
 
     class Meta:

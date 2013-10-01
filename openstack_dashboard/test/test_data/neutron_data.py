@@ -31,9 +31,11 @@ def data(TEST):
     TEST.subnets = utils.TestDataContainer()
     TEST.ports = utils.TestDataContainer()
     TEST.routers = utils.TestDataContainer()
+    TEST.routers_with_rules = utils.TestDataContainer()
     TEST.q_floating_ips = utils.TestDataContainer()
     TEST.q_secgroups = utils.TestDataContainer()
     TEST.q_secgroup_rules = utils.TestDataContainer()
+    TEST.providers = utils.TestDataContainer()
     TEST.pools = utils.TestDataContainer()
     TEST.vips = utils.TestDataContainer()
     TEST.members = utils.TestDataContainer()
@@ -136,7 +138,7 @@ def data(TEST):
 
     TEST.api_network_profile_binding.add(network_profile_binding_dict)
     TEST.network_profile_binding.add(neutron.Profile(
-            network_profile_binding_dict))
+        network_profile_binding_dict))
 
     # policy profile binding
     policy_profile_binding_dict = {'profile_id':
@@ -145,7 +147,7 @@ def data(TEST):
 
     TEST.api_policy_profile_binding.add(policy_profile_binding_dict)
     TEST.policy_profile_binding.add(neutron.Profile(
-            policy_profile_binding_dict))
+        policy_profile_binding_dict))
 
     # ports on 1st network
     port_dict = {'admin_state_up': True,
@@ -290,6 +292,23 @@ def data(TEST):
                    'tenant_id': '1'}
     TEST.api_routers.add(router_dict)
     TEST.routers.add(neutron.Router(router_dict))
+    router_dict = {'id': '71fb25e9-cd9f-4a44-a780-85ec3bd8bdd7',
+                   'name': 'rulerouter',
+                   'external_gateway_info':
+                       {'network_id': ext_net['id']},
+                   'tenant_id': '1',
+                   'router_rules': [{'id': '101',
+                                     'action': 'deny',
+                                     'source': 'any',
+                                     'destination': 'any',
+                                     'nexthops': []},
+                                    {'id': '102',
+                                     'action': 'permit',
+                                     'source': 'any',
+                                     'destination': '8.8.8.8/32',
+                                     'nexthops': ['1.0.0.2', '1.0.0.1']}]}
+    TEST.api_routers.add(router_dict)
+    TEST.routers_with_rules.add(neutron.Router(router_dict))
 
     #------------------------------------------------------------
     # floating IP
@@ -411,7 +430,8 @@ def data(TEST):
                  'protocol': 'HTTP',
                  'lb_method': 'ROUND_ROBIN',
                  'health_monitors': ['d4a0500f-db2b-4cc4-afcf-ec026febff96'],
-                 'admin_state_up': True}
+                 'admin_state_up': True,
+                 'provider': 'haproxy'}
     TEST.api_pools.add(pool_dict)
     TEST.pools.add(lbaas.Pool(pool_dict))
 
@@ -517,13 +537,14 @@ def data(TEST):
 
     #------------------------------------------------------------
     # Quotas
-    quota_data = dict(floatingip='50',
-                      network='10',
-                      port='50',
-                      router='10',
-                      security_groups='10',
-                      security_group_rules='100',
-                      subnet='10')
+    quota_data = {'network': '10',
+                  'subnet': '10',
+                  'port': '50',
+                  'router': '10',
+                  'floatingip': '50',
+                  'security_group': '20',
+                  'security_group_rule': '100',
+                  }
     TEST.neutron_quotas.add(base.QuotaSet(quota_data))
 
     #------------------------------------------------------------
@@ -534,9 +555,8 @@ def data(TEST):
     extension_2 = {"name": "Quota management support",
                    "alias": "quotas",
                    "description": "Expose functions for quotas management"}
-    extensions = {}
-    extensions['extensions'] = [extension_1, extension_2]
-    TEST.api_extensions.add(extensions)
+    TEST.api_extensions.add(extension_1)
+    TEST.api_extensions.add(extension_2)
 
     #------------------------------------------------------------
     # 1st agent
@@ -576,6 +596,13 @@ def data(TEST):
                       "ports": 1}}
     TEST.api_agents.add(agent_dict)
     TEST.agents.add(neutron.Agent(agent_dict))
+
+    #------------------------------------------------------------
+    # Service providers
+    provider_1 = {"service_type": "LOADBALANCER",
+                  "name": "haproxy",
+                  "default": True}
+    TEST.providers.add(provider_1)
 
     #------------------------------------------------------------
     # VPNaaS
@@ -713,7 +740,7 @@ def data(TEST):
 
     # FWaaS
 
-    # 1st rule
+    # 1st rule (used by 1st policy)
     rule1_dict = {'id': 'f0881d38-c3eb-4fee-9763-12de3338041d',
                   'tenant_id': '1',
                   'name': 'rule1',
@@ -729,13 +756,16 @@ def data(TEST):
                   'shared': True,
                   'enabled': True}
     TEST.api_fw_rules.add(rule1_dict)
-    TEST.fw_rules.add(fwaas.Rule(rule1_dict))
 
-    # 2nd rule
-    rule2_dict = {'id': 'g0881d38-c3eb-4fee-9763-12de3338041d',
+    rule1 = fwaas.Rule(copy.deepcopy(rule1_dict))
+    # NOTE: rule1['policy'] is set below
+    TEST.fw_rules.add(rule1)
+
+    # 2nd rule (used by 2nd policy; no name)
+    rule2_dict = {'id': 'c6298a93-850f-4f64-b78a-959fd4f1e5df',
                   'tenant_id': '1',
-                  'name': 'rule2',
-                  'description': 'rule2 description',
+                  'name': '',
+                  'description': '',
                   'protocol': 'udp',
                   'action': 'deny',
                   'source_ip_address': '1.2.3.0/24',
@@ -747,9 +777,12 @@ def data(TEST):
                   'shared': True,
                   'enabled': True}
     TEST.api_fw_rules.add(rule2_dict)
-    TEST.fw_rules.add(fwaas.Rule(rule2_dict))
 
-    # 3rd rule
+    rule2 = fwaas.Rule(copy.deepcopy(rule2_dict))
+    # NOTE: rule2['policy'] is set below
+    TEST.fw_rules.add(rule2)
+
+    # 3rd rule (not used by any policy)
     rule3_dict = {'id': 'h0881d38-c3eb-4fee-9763-12de3338041d',
                   'tenant_id': '1',
                   'name': 'rule3',
@@ -765,28 +798,72 @@ def data(TEST):
                   'shared': True,
                   'enabled': True}
     TEST.api_fw_rules.add(rule3_dict)
-    TEST.fw_rules.add(fwaas.Rule(rule3_dict))
 
-    # 1st policy
-    policy_dict = {'id': 'abcdef-c3eb-4fee-9763-12de3338041e',
-                   'tenant_id': '1',
-                   'name': 'policy1',
-                   'description': 'policy description',
-                   'firewall_rules': [rule1_dict['id'], rule2_dict['id']],
-                   'audited': True,
-                   'shared': True}
-    TEST.api_fw_policies.add(policy_dict)
-    TEST.fw_policies.add(fwaas.Policy(policy_dict))
+    rule3 = fwaas.Rule(copy.deepcopy(rule3_dict))
+    # rule3 is not associated with any rules
+    rule3._apidict['policy'] = None
+    TEST.fw_rules.add(rule3)
+
+    # 1st policy (associated with 2 rules)
+    policy1_dict = {'id': 'abcdef-c3eb-4fee-9763-12de3338041e',
+                    'tenant_id': '1',
+                    'name': 'policy1',
+                    'description': 'policy with two rules',
+                    'firewall_rules': [rule1_dict['id'], rule2_dict['id']],
+                    'audited': True,
+                    'shared': True}
+    TEST.api_fw_policies.add(policy1_dict)
+
+    policy1 = fwaas.Policy(copy.deepcopy(policy1_dict))
+    policy1._apidict['rules'] = [rule1, rule2]
+    TEST.fw_policies.add(policy1)
+
+    # Reverse relations (rule -> policy)
+    rule1._apidict['policy'] = policy1
+    rule2._apidict['policy'] = policy1
+
+    # 2nd policy (associated with no rules; no name)
+    policy2_dict = {'id': 'cf50b331-787a-4623-825e-da794c918d6a',
+                    'tenant_id': '1',
+                    'name': '',
+                    'description': '',
+                    'firewall_rules': [],
+                    'audited': False,
+                    'shared': False}
+    TEST.api_fw_policies.add(policy2_dict)
+
+    policy2 = fwaas.Policy(copy.deepcopy(policy2_dict))
+    policy2._apidict['rules'] = []
+    TEST.fw_policies.add(policy2)
 
     # 1st firewall
-    firewall_dict = {'id': '8913dde8-4915-4b90-8d3e-b95eeedb0d49',
-                     'tenant_id': '1',
-                     'firewall_policy_id':
-                         'abcdef-c3eb-4fee-9763-12de3338041e',
-                     'name': 'firewall1',
-                     'description': 'firewall description',
-                     'status': 'PENDING_CREATE',
-                     'shared': True,
-                     'admin_state_up': True}
-    TEST.api_firewalls.add(firewall_dict)
-    TEST.firewalls.add(fwaas.Firewall(firewall_dict))
+    fw1_dict = {'id': '8913dde8-4915-4b90-8d3e-b95eeedb0d49',
+                'tenant_id': '1',
+                'firewall_policy_id':
+                    'abcdef-c3eb-4fee-9763-12de3338041e',
+                'name': 'firewall1',
+                'description': 'firewall description',
+                'status': 'PENDING_CREATE',
+                'shared': True,
+                'admin_state_up': True}
+    TEST.api_firewalls.add(fw1_dict)
+
+    fw1 = fwaas.Firewall(copy.deepcopy(fw1_dict))
+    fw1._apidict['policy'] = policy1
+    TEST.firewalls.add(fw1)
+
+    # 2nd firewall (no name)
+    fw2_dict = {'id': '1aa75150-415f-458e-bae5-5a362a4fb1f7',
+                'tenant_id': '1',
+                'firewall_policy_id':
+                    'abcdef-c3eb-4fee-9763-12de3338041e',
+                'name': '',
+                'description': '',
+                'status': 'PENDING_CREATE',
+                'shared': True,
+                'admin_state_up': True}
+    TEST.api_firewalls.add(fw1_dict)
+
+    fw2 = fwaas.Firewall(copy.deepcopy(fw2_dict))
+    fw2._apidict['policy'] = policy1
+    TEST.firewalls.add(fw1)

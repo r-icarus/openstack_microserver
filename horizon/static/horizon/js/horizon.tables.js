@@ -90,22 +90,22 @@ horizon.datatables = {
           complete: function (jqXHR, textStatus) {
             // Revalidate the button check for the updated table
             horizon.datatables.validate_button();
+
+            // Set interval decay to this table, and increase if it already exist
+            if(decay_constant === undefined) {
+              decay_constant = 1;
+            } else {
+              decay_constant++;
+            }
+            $table.attr('decay_constant', decay_constant);
+            // Poll until there are no rows in an "unknown" state on the page.
+            next_poll = interval * decay_constant;
+            // Limit the interval to 30 secs
+            if(next_poll > 30 * 1000) next_poll = 30 * 1000;
+            setTimeout(horizon.datatables.update, next_poll);
           }
         });
       });
-
-      // Set interval decay to this table, and increase if it already exist
-      if(decay_constant === undefined) {
-        decay_constant = 1;
-      } else {
-        decay_constant++;
-      }
-      $table.attr('decay_constant', decay_constant);
-      // Poll until there are no rows in an "unknown" state on the page.
-      next_poll = interval * decay_constant;
-      // Limit the interval to 30 secs
-      if(next_poll > 30 * 1000) next_poll = 30 * 1000;
-      setTimeout(horizon.datatables.update, next_poll);
     }
   },
 
@@ -140,20 +140,20 @@ horizon.datatables.confirm = function (action) {
   closest_table_id = $(action).closest("table").attr("id");
   // Check if data-display attribute is available
   if ($("#"+closest_table_id+" tr[data-display]").length > 0) {
-    name_string = gettext("You have selected ");
     if($(action).closest("div").hasClass("table_actions")) {
       // One or more checkboxes selected
       $("#"+closest_table_id+" tr[data-display]").has(":checkbox:checked").each(function() {
         name_array.push(" \"" + $(this).attr("data-display") + "\"");
       });
       name_array.join(", ");
-      name_string += name_array.toString() + ". ";
+      name_string = name_array.toString();
     } else {
       // If no checkbox is selected
-      name_string += " \"" + $(action).closest("tr").attr("data-display") + "\". ";
+      name_string = " \"" + $(action).closest("tr").attr("data-display") + "\"";
     }
+    name_string = interpolate(gettext("You have selected %s. "), [name_string]);
   }
-  title = gettext("Confirm ") + action_string;
+  title = interpolate(gettext("Confirm %s"), [action_string]);
   body = name_string + gettext("Please confirm your selection. This action cannot be undone.");
   modal = horizon.modals.create(title, body, action_string);
   modal.modal();

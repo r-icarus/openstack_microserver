@@ -18,8 +18,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
-
 from django.utils.translation import ugettext_lazy as _  # noqa
 
 from horizon import exceptions
@@ -34,9 +32,6 @@ from openstack_dashboard.dashboards.admin.flavors.extras \
     import tables as project_tables
 
 
-LOG = logging.getLogger(__name__)
-
-
 class ExtraSpecMixin(object):
     def get_context_data(self, **kwargs):
         context = super(ExtraSpecMixin, self).get_context_data(**kwargs)
@@ -45,7 +40,7 @@ class ExtraSpecMixin(object):
                                                     self.kwargs['id'])
         except Exception:
             exceptions.handle(self.request,
-                              _("Unable to retrieve flavor data."))
+                              _("Unable to retrieve flavor details."))
         return context
 
 
@@ -90,7 +85,8 @@ class EditView(ExtraSpecMixin, forms.ModalFormView):
         except Exception:
             extra_specs = {}
             exceptions.handle(self.request,
-                              _("Unable to retrieve flavor extra spec data."))
+                              _('Unable to retrieve flavor extra spec '
+                                'details.'))
         return {'flavor_id': flavor_id,
                 'key': key,
                 'value': extra_specs.get(key, '')}
