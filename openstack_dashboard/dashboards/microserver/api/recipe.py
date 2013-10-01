@@ -28,6 +28,15 @@ class Recipe(object):
 	def created_at(self):
 		return self._created_at
 
+SERVER_LIST = [Recipe(1,"SotolBlog","wordpress","Running"), Recipe(2,"SotolMail", "Postfix","Help me :(")]
+
 def recipe_list():
-	recipe_list = [ Recipe(1,"SotolBlog","wordpress","Running"), Recipe(2,"SotolMail", "Postfix","Help me :(")]
+	recipe_list = SERVER_LIST
 	return recipe_list
+
+def recipe_status(recipe_id):
+	recipe = Recipe(0, 'Not Found', 'Not Found', 'Not Found')
+	for server in SERVER_LIST:
+		if(server.id == int(recipe_id)):
+			recipe = server
+	return {'status' : recipe._status}

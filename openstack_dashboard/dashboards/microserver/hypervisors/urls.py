@@ -22,5 +22,6 @@ from openstack_dashboard.dashboards.microserver.hypervisors import views
 
 urlpatterns = patterns(
     'openstack_dashboard.dashboards.microserver.hypervisors.views',
-    url(r'^$', views.AdminIndexView.as_view(), name='index')
+    url(r'^$', views.AdminIndexView.as_view(), name='index'),
+    url(r'^server_status/(?P<server_id>\d+/$)', views.server_current_status, name='server_current_status')
 )

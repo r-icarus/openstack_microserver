@@ -15,9 +15,9 @@
 #    under the License.
 
 import logging
-
+import json
 from django.utils.translation import ugettext_lazy as _  # noqa
-
+from django.http import HttpResponse
 from horizon import exceptions
 from horizon import tables
 from openstack_dashboard import api
@@ -51,3 +51,9 @@ class AdminIndexView(tables.DataTableView):
                 _('Unable to retrieve hypervisor statistics.'))
 
         return context
+
+
+def server_current_status(self, server_id):
+  status = recipe_api.recipe_status(server_id[:-1])
+  data = json.dumps(status)
+  return HttpResponse(data, mimetype='application/json') 
