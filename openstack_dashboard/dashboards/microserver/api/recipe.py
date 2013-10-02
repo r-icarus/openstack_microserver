@@ -39,4 +39,4 @@ def recipe_status(recipe_id):
 	for server in SERVER_LIST:
 		if(server.id == int(recipe_id)):
 			recipe = server
-	return {'status' : recipe._status}
+	return {'status' : "Nuevo status"}

@@ -27,6 +27,7 @@ class UpdateRecipe(tables.LinkAction):
     classes = ("btn-edit",)
 
 class MicroserverRecipesTable(tables.DataTable):
+    identity = tables.Column("id", verbose_name = _("Id"), hidden = True)
     name = tables.Column("name", verbose_name = _("Name"))
     recipe_type = tables.Column("recipe_type", verbose_name = _("Type"))
     created_at = tables.Column("created_at", verbose_name = _("Created at"))
