@@ -13,6 +13,13 @@ class CreateRecipe(tables.LinkAction):
     url = "horizon:admin:recipes:create"
     classes = ("ajax-modal", "btn-create")
 
+class DeleteRecipe(tables.DeleteAction):
+    data_type_singular = _("Recipe")
+    data_type_plural = _("Recipes")
+
+    def delete(self, request, obj_id):
+        pass
+
 class MicroserverRecipesTable(tables.DataTable):
     name = tables.Column("name", verbose_name = _("Name"))
 
@@ -25,7 +32,7 @@ class MicroserverRecipesTable(tables.DataTable):
     class Meta:
         name = "recipes"
         verbose_name = _("All Servers")
-        table_actions = (CreateRecipe, )
+        table_actions = (CreateRecipe,DeleteRecipe )
         #row_actions = (DeleteRecipe)
 
 
