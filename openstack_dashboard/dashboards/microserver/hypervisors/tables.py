@@ -20,20 +20,23 @@ class DeleteRecipe(tables.DeleteAction):
     def delete(self, request, obj_id):
         pass
 
+class UpdateRecipe(tables.LinkAction):
+    name = "update"
+    verbose_name = _("Edit Recipe")
+    url = "horizon:admin:recipe:update"
+    classes = ("ajax-modal", "btn-edit")
+
 class MicroserverRecipesTable(tables.DataTable):
     name = tables.Column("name", verbose_name = _("Name"))
-
     recipe_type = tables.Column("recipe_type", verbose_name = _("Type"))
-
     created_at = tables.Column("created_at", verbose_name = _("Created at"))
-
     status = tables.Column("status", verbose_name = _("Status"))
 
     class Meta:
         name = "recipes"
         verbose_name = _("All Servers")
-        table_actions = (CreateRecipe,DeleteRecipe )
-        #row_actions = (DeleteRecipe)
+        table_actions = (CreateRecipe,DeleteRecipe)
+        row_actions = (UpdateRecipe, )
 
 
 
