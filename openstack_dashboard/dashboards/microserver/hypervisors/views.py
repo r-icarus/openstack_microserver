@@ -29,7 +29,7 @@ LOG = logging.getLogger(__name__)
 
 
 class AdminIndexView(tables.DataTableView):
-    table_class = project_tables.AdminHypervisorsTable
+    table_class = project_tables.MicroserverRecipesTable
     template_name = 'microserver/hypervisors/index.html'
 
     def get_data(self):
