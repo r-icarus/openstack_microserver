@@ -8,14 +8,13 @@ LOG = logging.getLogger(__name__)
 
 
 class AdminHypervisorsTable(tables.DataTable):
-    name = tables.Column("name",
-                            verbose_name=_("Name"))
+    name = tables.Column("name", verbose_name = _("Name"))
 
-    recipe_type = tables.Column("recipe_type",
-                                    verbose_name=_("Type"))
+    recipe_type = tables.Column("recipe_type", verbose_name = _("Type"))
 
-    created_at = tables.Column("created_at",
-                          verbose_name=_("Created at"))
+    created_at = tables.Column("created_at", verbose_name = _("Created at"))
+
+    status = tables.Column("status", verbose_name = _("Status"))
 
 
     class Meta:

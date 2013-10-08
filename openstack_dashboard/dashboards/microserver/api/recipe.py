@@ -1,10 +1,11 @@
 from datetime import datetime
 
 class Recipe(object):
-	def __init__(self, recipe_id=0, name = "", recipe_type = ""):
+	def __init__(self, recipe_id = 0, name = "", recipe_type = "",status = "" ):
 		self._id = recipe_id
 		self._name = name
 		self._recipe_type = recipe_type
+		self._status = status 
 		self._created_at = datetime.now()
 
 	@property
@@ -20,9 +21,13 @@ class Recipe(object):
 		return self._recipe_type
 
 	@property
+	def status(self):
+		return self._status
+
+	@property
 	def created_at(self):
 		return self._created_at
 
 def recipe_list():
-	recipe_list = [ Recipe(1,"SotolBlog","wordpress"), Recipe(2,"SotolMail", "Postfix")]
+	recipe_list = [ Recipe(1,"SotolBlog","wordpress","Running"), Recipe(2,"SotolMail", "Postfix","Help me :(")]
 	return recipe_list
