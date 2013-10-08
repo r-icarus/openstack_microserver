@@ -23,6 +23,7 @@ from horizon import tables
 from openstack_dashboard import api
 from openstack_dashboard.dashboards.microserver.hypervisors \
     import tables as project_tables
+from openstack_dashboard.dashboards.microserver.api import recipe as recipe_api
 
 LOG = logging.getLogger(__name__)
 
@@ -32,14 +33,14 @@ class AdminIndexView(tables.DataTableView):
     template_name = 'microserver/hypervisors/index.html'
 
     def get_data(self):
-        hypervisors = []
+        recipes = []
         try:
-            hypervisors = api.nova.hypervisor_list(self.request)
+            recipes = recipe_api.recipe_list()
         except Exception:
             exceptions.handle(self.request,
-                _('Unable to retrieve hypervisor information.'))
+                _('Unable to retrieve recipes information.'))
 
-        return hypervisors
+        return recipes
 
     def get_context_data(self, **kwargs):
         context = super(AdminIndexView, self).get_context_data(**kwargs)
