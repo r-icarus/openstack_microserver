@@ -22,7 +22,7 @@ class DeleteRecipe(tables.DeleteAction):
 
 class UpdateRecipe(tables.LinkAction):
     name = "update"
-    verbose_name = _("Edit Recipe")
+    verbose_name = _("Edit")
     url = "horizon:admin:recipe:update"
     classes = ("ajax-modal", "btn-edit")
 
@@ -34,7 +34,7 @@ class MicroserverRecipesTable(tables.DataTable):
 
     class Meta:
         name = "recipes"
-        verbose_name = _("All Servers")
+        verbose_name = _("All Recipes")
         table_actions = (CreateRecipe,DeleteRecipe)
         row_actions = (UpdateRecipe, )
 
