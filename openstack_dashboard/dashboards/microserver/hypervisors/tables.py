@@ -10,8 +10,8 @@ LOG = logging.getLogger(__name__)
 class CreateRecipe(tables.LinkAction):
     name = "create"
     verbose_name = _("Create Recipe")
-    url = "horizon:admin:recipes:create"
-    classes = ("ajax-modal", "btn-create")
+    url = "horizon:microserver:recipes:create"
+    classes = ("btn-create", )
 
 class DeleteRecipe(tables.DeleteAction):
     data_type_singular = _("Recipe")
@@ -23,8 +23,8 @@ class DeleteRecipe(tables.DeleteAction):
 class UpdateRecipe(tables.LinkAction):
     name = "update"
     verbose_name = _("Edit")
-    url = "horizon:admin:recipe:update"
-    classes = ("ajax-modal", "btn-edit")
+    url = "horizon:microserver:recipes:update"
+    classes = ("btn-edit",)
 
 class MicroserverRecipesTable(tables.DataTable):
     name = tables.Column("name", verbose_name = _("Name"))
