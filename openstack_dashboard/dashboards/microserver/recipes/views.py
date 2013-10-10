@@ -1,5 +1,5 @@
 from horizon import views
-
+from openstack_dashboard.dashboards.microserver.recipes import forms
 
 class IndexView(views.APIView):
     # A very simple class-based view...
@@ -12,10 +12,11 @@ class IndexView(views.APIView):
 
 
 class CreateView(views.APIView):
-	# A very simple class-based view...
     template_name = 'microserver/recipes/create.html'
 
-    def get_data(self, request, context, *args, **kwargs):    	        
+    def get_data(self, request, context, *args, **kwargs): 
+        create_form = forms.RecipeForm()
+        context["form"] = create_form   	        
         return context
 
 class UpdateView(views.APIView):
@@ -23,6 +24,10 @@ class UpdateView(views.APIView):
 
     def get_data(self, request, context, *args, **kwargs):              
         return context
+
+
+
+
 
 
 
