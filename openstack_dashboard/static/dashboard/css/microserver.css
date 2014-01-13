@@ -1,0 +1,7 @@
+.sidebar {
+	background-color: #E6F0C7;
+}
+
+.sidebar .nav-tabs li.active a {
+    background-color: #E6F0C7;
+}
