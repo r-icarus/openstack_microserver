@@ -28,7 +28,7 @@ class Recipe(object):
 	def created_at(self):
 		return self._created_at
 
-SERVER_LIST = [Recipe(1,"SotolBlog","wordpress","Running"), Recipe(2,"SotolMail", "Postfix","Help me :(")]
+SERVER_LIST = [Recipe(1,"SotolBlog","wordpress","Running"), Recipe(2,"SotolMail", "Postfix","Overload!!!"), Recipe(3, "SotolNube", "OwnCloud", "Running")]
 
 def recipe_list():
 	recipe_list = SERVER_LIST
